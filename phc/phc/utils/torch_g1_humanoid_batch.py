@@ -37,17 +37,18 @@ import smpl_sim.poselib.core.rotation3d as pRot
 # ]])
 # 旋转轴定义，23个关节的旋转轴
 G1_ROTATION_AXIS = torch.tensor([[
-    [0, 0, 1], # l_hip_yaw
+    [0, 1, 0], # l_hip_pitch （第一个，对应XML中的顺序）
     [1, 0, 0], # l_hip_roll
-    [0, 1, 0], # l_hip_pitch
+    [0, 0, 1], # l_hip_yaw
     
     [0, 1, 0], # l_knee
     [0, 1, 0], # l_ankle_pitch
     [1, 0, 0], # l_ankle_roll
     
-    [0, 0, 1], # r_hip_yaw
-    [1, 0, 0], # r_hip_roll
     [0, 1, 0], # r_hip_pitch
+    [1, 0, 0], # r_hip_roll
+    [0, 0, 1], # r_hip_yaw
+    
     
     [0, 1, 0], # r_knee
     [0, 1, 0], # r_ankle_pitch
@@ -79,7 +80,7 @@ class Humanoid_Batch:
         self.extend_head = extend_head
         if extend_hand:
             self.model_names = mjcf_data['node_names'] + ["left_hand_link", "right_hand_link"]
-            self._parents = torch.cat((mjcf_data['parent_indices'], torch.tensor([15, 19]))).to(device) # Adding the hands joints
+            self._parents = torch.cat((mjcf_data['parent_indices'], torch.tensor([17, 22]))).to(device) # Adding the hands joints to the wrist roll joints
             arm_length = 0.3
             self._offsets = torch.cat((mjcf_data['local_translation'], torch.tensor([[arm_length, 0, 0], [arm_length, 0, 0]])), dim = 0)[None, ].to(device)
             self._local_rotation = torch.cat((mjcf_data['local_rotation'], torch.tensor([[1, 0, 0, 0], [1, 0, 0, 0]])), dim = 0)[None, ].to(device)
@@ -157,8 +158,8 @@ class Humanoid_Batch:
         device, dtype = pose.device, pose.dtype
         pose_input = pose.clone()
         B, seq_len = pose.shape[:2]
-        pose = pose[..., :len(self._parents), :] # H1 fitted joints might have extra joints
-        if self.extend_hand and self.extend_head and pose.shape[-2] == 22:
+        pose = pose[..., :len(self._parents), :] # G1 fitted joints might have extra joints
+        if self.extend_hand and self.extend_head and pose.shape[-2] == 26:  # 23 joints + 3 added joints
             pose = torch.cat([pose, torch.zeros(B, seq_len, 1, 3).to(device).type(dtype)], dim = -2) # adding hand and head joints
 
         if convert_to_mat:

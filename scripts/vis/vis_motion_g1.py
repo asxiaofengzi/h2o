@@ -41,7 +41,7 @@ class AssetDesc:
 g1_xml = "legged_gym/resources/robots/g1/g1_23dof.xml"
 g1_urdf = "legged_gym/resources/robots/g1/g1_23dof.urdf"
 asset_descriptors = [
-    AssetDesc(g1_xml, False),
+    AssetDesc(g1_urdf, False),
 ]
 sk_tree = SkeletonTree.from_mjcf(g1_xml)
 

@@ -81,17 +81,19 @@ if __name__ == "__main__":
     #     [0, 1, 0], # r_elbow
     # ]]).to(device)
     g1_rotation_axis = torch.tensor([[
-        [0, 0, 1], # l_hip_yaw
+        # 左腿，按照XML中的顺序
+        [0, 1, 0], # l_hip_pitch （第一个在XML中）
         [1, 0, 0], # l_hip_roll
-        [0, 1, 0], # l_hip_pitch
+        [0, 0, 1], # l_hip_yaw
         
         [0, 1, 0], # l_knee
         [0, 1, 0], # l_ankle_pitch
         [1, 0, 0], # l_ankle_roll
         
-        [0, 0, 1], # r_hip_yaw
-        [1, 0, 0], # r_hip_roll
+        # 右腿，同样按照XML中的顺序
         [0, 1, 0], # r_hip_pitch
+        [1, 0, 0], # r_hip_roll  
+        [0, 0, 1], # r_hip_yaw
         
         [0, 1, 0], # r_knee
         [0, 1, 0], # r_ankle_pitch
@@ -146,12 +148,38 @@ if __name__ == "__main__":
 
     # 定义关节间对应关系
     g1_joint_names_augment = g1_joint_names + ["left_hand_link", "right_hand_link"]
-    g1_joint_pick = ['pelvis', "left_knee_link", "left_ankle_pitch_link", 'right_knee_link', 'right_ankle_pitch_link', 
-                     "left_shoulder_roll_link", "left_elbow_link", "left_hand_link", 
-                     "right_shoulder_roll_link", "right_elbow_link", "right_hand_link"]
-    smpl_joint_pick = ["Pelvis", "L_Knee", "L_Ankle", "R_Knee", "R_Ankle", 
-                      "L_Shoulder", "L_Elbow", "L_Hand", 
-                      "R_Shoulder", "R_Elbow", "R_Hand"]
+    # g1_joint_pick = ['pelvis', "left_knee_link", "left_ankle_pitch_link", 'right_knee_link', 'right_ankle_pitch_link', 
+    #                  "left_shoulder_roll_link", "left_elbow_link", "left_hand_link", 
+    #                  "right_shoulder_roll_link", "right_elbow_link", "right_hand_link"]
+    # smpl_joint_pick = ["Pelvis", "L_Knee", "L_Ankle", "R_Knee", "R_Ankle", 
+    #                   "L_Shoulder", "L_Elbow", "L_Hand", 
+    #                   "R_Shoulder", "R_Elbow", "R_Hand"]
+    g1_joint_pick = ["pelvis", 
+                 "left_hip_pitch_link", 
+                 "left_knee_link", 
+                 "left_ankle_pitch_link", 
+                 "right_hip_pitch_link", 
+                 "right_knee_link", 
+                 "right_ankle_pitch_link", 
+                 "left_shoulder_roll_link", 
+                 "left_elbow_link", 
+                 "left_hand_link", 
+                 "right_shoulder_roll_link", 
+                 "right_elbow_link", 
+                 "right_hand_link"]
+    smpl_joint_pick = ["Pelvis", 
+                    "L_Hip", 
+                    "L_Knee", 
+                    "L_Ankle", 
+                    "R_Hip", 
+                    "R_Knee", 
+                    "R_Ankle", 
+                    "L_Shoulder", 
+                    "L_Elbow", 
+                    "L_Hand", 
+                    "R_Shoulder", 
+                    "R_Elbow", 
+                    "R_Hand"]
     g1_joint_pick_idx = [g1_joint_names_augment.index(j) for j in g1_joint_pick]
     smpl_joint_pick_idx = [SMPL_BONE_ORDER_NAMES.index(j) for j in smpl_joint_pick]
 
@@ -193,6 +221,7 @@ if __name__ == "__main__":
         verts, joints = smpl_parser_n.get_joints_verts(pose_aa_walk, torch.zeros((1, 10)).to(device), trans)
         offset = joints[:, 0] - trans
         root_trans_offset = trans + offset
+        # root_trans_offset[..., 2] -= 0.1  # 向下调整
 
         # 初始化G1关节位置
         # pose_aa_h1 = np.repeat(np.repeat(sRot.identity().as_rotvec()[None, None, None, ], 22, axis = 2), N, axis = 1)
@@ -265,12 +294,12 @@ if __name__ == "__main__":
                 }
         
          # 测试一个样本，然后如需处理所有数据，请移除此行
-        print(f"dumping {data_key} for testing, remove the line if you want to process all data")
-        import ipdb; ipdb.set_trace()
+        # print(f"dumping {data_key} for testing, remove the line if you want to process all data")
+        # import ipdb; ipdb.set_trace()
         # joblib.dump(data_dump, "data/h1/test.pkl")
-        joblib.dump(data_dump, "data/g1/test.pkl")
+        # joblib.dump(data_dump, "data/g1/test.pkl")
     
     # 保存所有处理过的动作数据
-    import ipdb; ipdb.set_trace()
+    # import ipdb; ipdb.set_trace()
     # joblib.dump(data_dump, "data/h1/amass_all.pkl")
     joblib.dump(data_dump, "/home/js/xiaofengzi/h2o/data/g1/amass_all_torso.pkl")

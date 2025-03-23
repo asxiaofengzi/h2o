@@ -56,10 +56,34 @@ g1_fk = Humanoid_Batch(mjcf_file="resources/robots/g1/g1_23dof.xml", extend_head
 
 # 定义G1和SMPL关节之间的对应关系
 g1_joint_names_augment = g1_joint_names + ["left_hand_link", "right_hand_link", "head_link"]
-g1_joint_pick = ['pelvis', 'left_hip_pitch_link', "left_knee_link", "left_ankle_pitch_link", 'right_hip_pitch_link', 'right_knee_link', 'right_ankle_pitch_link', 
-                 "left_shoulder_roll_link", "left_elbow_link", "left_hand_link", "right_shoulder_roll_link", "right_elbow_link", "right_hand_link", "head_link"]
-smpl_joint_pick = ["Pelvis", "L_Hip", "L_Knee", "L_Ankle", "R_Hip", "R_Knee", "R_Ankle", 
-                  "L_Shoulder", "L_Elbow", "L_Hand", "R_Shoulder", "R_Elbow", "R_Hand", "Head"]
+g1_joint_pick = ["pelvis", 
+                 "left_hip_pitch_link", 
+                 "left_knee_link", 
+                 "left_ankle_pitch_link", 
+                 "right_hip_pitch_link", 
+                 "right_knee_link", 
+                 "right_ankle_pitch_link", 
+                 "left_shoulder_roll_link", 
+                 "left_elbow_link", 
+                 "left_hand_link", 
+                 "right_shoulder_roll_link", 
+                 "right_elbow_link", 
+                 "right_hand_link", 
+                 "head_link"]
+smpl_joint_pick = ["Pelvis", 
+                   "L_Hip", 
+                   "L_Knee", 
+                   "L_Ankle", 
+                   "R_Hip", 
+                   "R_Knee", 
+                   "R_Ankle", 
+                  "L_Shoulder", 
+                  "L_Elbow", 
+                  "L_Hand", 
+                  "R_Shoulder", 
+                  "R_Elbow", 
+                  "R_Hand", 
+                  "Head"]
 g1_joint_pick_idx = [g1_joint_names_augment.index(j) for j in g1_joint_pick]
 smpl_joint_pick_idx = [SMPL_BONE_ORDER_NAMES.index(j) for j in smpl_joint_pick]
 
@@ -79,6 +103,7 @@ pose_aa_g1 = torch.cat([torch.zeros((1, 1, 3)), G1_ROTATION_AXIS * dof_pos[..., 
 
 
 root_trans = torch.zeros((1, 1, 3))    
+# root_trans[0, 0, 2] = -0.1  # 向下调整初始高度，根据需要修改数值
 
 ###### prepare SMPL default pause for G1
 pose_aa_stand = np.zeros((1, 72))

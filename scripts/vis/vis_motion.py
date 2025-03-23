@@ -52,7 +52,8 @@ asset_descriptors = [
 ]
 sk_tree = SkeletonTree.from_mjcf(h1_xml)
 
-motion_file = "/home/js/xiaofengzi/human2humanoid/legged_gym/resources/motions/h1/amass_phc_filtered.pkl"
+# motion_file = "/home/js/xiaofengzi/human2humanoid/legged_gym/resources/motions/h1/amass_phc_filtered.pkl"
+motion_file = "/home/js/xiaofengzi/h2o/data/h1/test.pkl"
 if os.path.exists(motion_file):
     print(f"loading {motion_file}")
 else:

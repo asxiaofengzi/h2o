@@ -2,7 +2,7 @@ from legged_gym.envs.base.legged_robot_config import LeggedRobotCfg, LeggedRobot
 
 class G1TeleopCfg( LeggedRobotCfg ):
     class init_state( LeggedRobotCfg.init_state ):
-        pos = [0.0, 0.0, 1.0] # x,y,z [m]
+        pos = [0.0, 0.0, 0.1] # x,y,z [m]，调整为与H1相同的高度
         max_linvel = 0.5
         max_angvel = 0.5
         default_joint_angles = { # = target angles [rad] when action = 0.0 改成g1的joint
@@ -53,8 +53,12 @@ class G1TeleopCfg( LeggedRobotCfg ):
         randomize_link_mass = True
         link_mass_range = [0.7, 1.3] # *factor
         randomize_link_body_names = [
-            'pelvis', 'left_hip_yaw_link', 'left_hip_roll_link', 'left_hip_pitch_link', 
-            'right_hip_yaw_link', 'right_hip_roll_link', 'right_hip_pitch_link',  'torso_link',
+            'pelvis', 
+            'left_hip_pitch_link', 'left_hip_roll_link', 'left_hip_yaw_link',
+            'right_hip_pitch_link', 'right_hip_roll_link', 'right_hip_yaw_link',
+            'torso_link',
+            'left_ankle_pitch_link', 'left_ankle_roll_link',
+            'right_ankle_pitch_link', 'right_ankle_roll_link',
         ]
 
         randomize_pd_gain = True
@@ -87,8 +91,8 @@ class G1TeleopCfg( LeggedRobotCfg ):
             gravity = 0.1
             in_contact = 0.1
             height_measurements = 0.05
-            body_pos = 0.01 # body pos in cartesian space: 19x3
-            body_lin_vel = 0.01 # body velocity in cartesian space: 19x3
+            body_pos = 0.01 # body pos in cartesian space: 23x3
+            body_lin_vel = 0.01 # body velocity in cartesian space: 23x3
             body_rot = 0.001 # 6D body rotation 
             delta_base_pos = 0.05
             delta_heading = 0.1
@@ -142,8 +146,9 @@ class G1TeleopCfg( LeggedRobotCfg ):
     class env(LeggedRobotCfg.env):
         num_envs = 4096
         # G1的23DOF比H1多了4个关节，需要调整观察空间和动作空间维度
-        num_observations = 146  # 调整为适合G1的观察空间维度
-        num_privileged_obs = 222  # 调整为适合G1的特权观察空间维度
+        # 由于H1的观察空间维度是138，特权观察空间是214，G1多了4个关节(位置+速度=8个状态量)
+        num_observations = 146  # v-teleop-extend-max对应的G1观察空间维度
+        num_privileged_obs = 222  # v-teleop-extend-max对应的G1特权观察空间维度
         num_actions = 23  # G1有23个自由度
         im_eval = False
         # num_observations = 88 # v-min2
@@ -193,20 +198,24 @@ class G1TeleopCfg( LeggedRobotCfg ):
         stiffness = {'hip_yaw': 200,
                      'hip_roll': 200,
                      'hip_pitch': 200,
-                     'knee': 300,
-                     'ankle': 40,
+                     'knee': 150,
+                     'ankle_pitch': 40,
+                     'ankle_roll': 40,
                      'torso': 300,
                      'shoulder': 100,
-                     "elbow":100,
+                     'elbow': 100,
+                     'wrist_roll': 50,
                      }  # [N*m/rad]
         damping = {  'hip_yaw': 5,
                      'hip_roll': 5,
                      'hip_pitch': 5,
-                     'knee': 6,
-                     'ankle': 2,
+                     'knee': 3,
+                     'ankle_pitch': 2,
+                     'ankle_roll': 2,
                      'torso': 6,
                      'shoulder': 2,
-                     "elbow":2,
+                     'elbow': 2,
+                     'wrist_roll': 1,
                      }  # [N*m/rad]  # [N*m*s/rad]
         # stiffness = {'hip_yaw': 200,
         #              'hip_roll': 200,
@@ -238,9 +247,13 @@ class G1TeleopCfg( LeggedRobotCfg ):
     class asset( LeggedRobotCfg.asset ):
         file = '{LEGGED_GYM_ROOT_DIR}/resources/robots/g1/g1_23dof.xml'
         name = "g1"
-        foot_name = "ankle" # 可能需要更新为准确的脚踝链接名称
+        foot_name = "ankle_roll_link" # 可能需要更新为准确的脚踝链接名称
         penalize_contacts_on = []
-        terminate_after_contacts_on = ["pelvis", "shoulder", "hip", "knee"]
+        # terminate_after_contacts_on = ["pelvis", "shoulder", "hip", "knee"]
+        terminate_after_contacts_on = ["pelvis", 
+                                "left_shoulder_pitch_link", "right_shoulder_pitch_link", 
+                                "left_hip_pitch_link", "right_hip_pitch_link", 
+                                "left_knee_link", "right_knee_link"]
         self_collisions = 1 # 1 to disable, 0 to enable...bitwise filter
         replace_cylinder_with_capsule = True
         flip_visual_attachments = False
@@ -343,26 +356,30 @@ class G1TeleopCfg( LeggedRobotCfg ):
         teleop_body_ang_vel_selection = ['pelvis']
         teleop_joint_pos_selection = {
                 # upper body
-                'torso_joint': 2.0,
+                'waist_yaw_joint': 2.0,
                 'left_shoulder_pitch_joint': 2.0,
                 'left_shoulder_roll_joint': 2.0,
                 'left_shoulder_yaw_joint': 2.0,
                 'left_elbow_joint': 2.0,
+                'left_wrist_roll_joint': 1.0,
                 'right_shoulder_pitch_joint': 2.0,
                 'right_shoulder_roll_joint': 2.0,
                 'right_shoulder_yaw_joint': 2.0,
                 'right_elbow_joint': 2.0,
+                'right_wrist_roll_joint': 1.0,
                 # lower body
                 'left_hip_pitch_joint': 2.0,
                 'left_hip_roll_joint': 0.5,
                 'left_hip_yaw_joint': 0.5,
                 'left_knee_joint': 0.5,
-                'left_ankle_joint': 0.5,
+                'left_ankle_pitch_joint': 0.5,
+                'left_ankle_roll_joint': 0.5,
                 'right_hip_pitch_joint': 2.0,
                 'right_hip_roll_joint': 0.5,
                 'right_hip_yaw_joint': 0.5,
                 'right_knee_joint': 0.5,
-                'right_ankle_joint': 0.5,
+                'right_ankle_pitch_joint': 0.5,
+                'right_ankle_roll_joint': 0.5,
         }
               
             
@@ -438,7 +455,7 @@ class G1TeleopCfg( LeggedRobotCfg ):
         # teleop_obs_version = 'v-teleop-clean-nolastaction'
         # teleop_obs_version = 'v-teleop-extend'
         # teleop_obs_version = 'v-teleop-extend-nolinvel'
-        teleop_obs_version = 'v-teleop-extend-max'
+        teleop_obs_version = 'v-teleop-extend-max'  # 确保这是我们要使用的版本
         # teleop_obs_version = 'v-teleop-extend-max-nolinvel'
         # teleop_obs_version = 'v-teleop-extend-max-acc'
         # teleop_obs_version = 'v-min2'
@@ -470,7 +487,7 @@ class G1TeleopCfgPPO( LeggedRobotCfgPPO ):
         #仅更改实验名称
         run_name = ''
         experiment_name = 'g1:teleop'
-        max_iterations = 10
+        max_iterations = 10000000  # 修改为与H1相同
         
         
     class policy ( LeggedRobotCfgPPO.policy ):

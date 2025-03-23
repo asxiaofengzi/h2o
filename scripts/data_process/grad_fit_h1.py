@@ -46,7 +46,7 @@ def load_amass_data(data_path):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--amass_root", type=str, default="/hdd/zen/data/ActBound/AMASS/AMASS_Complete")
+    parser.add_argument("--amass_root", type=str, default="/home/js/xiaofengzi/h2o/data/AMASS/AMASS_Complete")
     args = parser.parse_args()
     
     device = torch.device("cpu")
